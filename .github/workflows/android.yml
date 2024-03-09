@@ -1,0 +1,50 @@
+name: Android CI
+
+on:
+  push:
+    branches: [ "Develop" ]
+  pull_request:
+    branches: [ "Develop" ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+    - run: echo "This job is now running on a ${{ runner.os }} server hosted by GitHub!"
+    - run: echo "The name of your branch is ${{ github.ref }} and your repository is ${{ github.repository }}."
+    - run: echo "The ${{ github.repository }} repository
+          has been cloned to the runner."
+    - name: "Checkout repository code"
+      uses: actions/checkout@v4
+    - name: "Setup Java"
+      uses: actions/setup-java@v1
+      with:
+        java-version: 11.x
+    - name: Create .env file
+      run: touch .env
+      working-directory: ./MinderTesting
+    - name: Populate .env file
+      run: echo "# comment" > .env
+      working-directory: ./MinderTesting
+    - name: "Setup Flutter"
+      uses: subosito/flutter-action@v2
+      with:
+        channel: "stable"
+    - name: "Install Flutter dependencies"
+      run: flutter pub get
+      working-directory: ./MinderTesting
+    - name: "Run Tests"
+      run: flutter test
+      working-directory: ./MinderTesting
+    - name: "Create test output file"
+      run: flutter test -r json > test_output.json
+      working-directory: ./MinderingTesting
+    - name: "Publish Test Results"
+      uses: EnricoMi/publish-unit-test-result-action@v2
+      if: always()
+      with:
+        files: |
+          ./MinderTesting/test_output.json
